@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+	{% include 'navbar.html'%}
+
+	<div class="container seccion">
+
+	  <form class="form-signin" id="form-login" action="/service_login" method="post" role="form">
+	    <h2 class="form-signin-heading">Please Log In</h2>
+	    <label for="inputEmail" class="sr-only">Email address</label>
+	    <input type="email" id="inputEmail" class="form-control" name="email"
+	     placeholder="Email address" required autofocus>
+	    <label for="inputPassword" class="sr-only">Password</label>
+	    <input type="password" id="inputPassword" class="form-control" name="password" 
+	    placeholder="Password" required>
+	    <a class="btn btn-lg btn-primary green-bg btn-block" id="login">Log in</a>
+	  </form>
+
+	</div>
+
+{% endblock %}
+
+{% block js %}
+		<script type="text/javascript">
+
+			
+			$('#login').click(function(event) {
+				$.ajax({
+	            url:  '/service_login',
+	            data: $('#form-login').serialize(),
+	            type: 'POST',
+	            success: function(response) {
+	            	response = JSON.parse(response);
+	            	//console.log(response);
+	              if (response.status == 'ERR'){
+	              	alert(response.error);
+	              }else if(response.status == 'OK'){
+	              	window.location.replace("/list");
+	              }
+	            },
+	            error: function(error) {
+	                console.log(error);
+	            }
+	        });
+			});
+
+		</script>
+{% endblock %}

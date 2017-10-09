@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+	
+  <div class="container green-text">
+    <p class="lead"><b>Hi {{ user_email }}, you have some TODO's</b></p>
+  </div>
+	
+	<div class="card mb-4">
+	            <div class="card-header green-text">TODO LIST</div>
+	            <div class="card-block p-0">
+	                <table class="table table-responsive table-hover">
+		                <thead>
+			                <tr>
+				                <th>STATUS</th>
+				                <th>TASK</th>
+				                <th>ACTION</th>
+			                </tr>
+		                </thead>
+	                	<tbody>
+	                		{% for item in tasks %}
+	                			<tr data-id="{{item.id}}">
+					                <td>
+					                    <label class="custom-control custom-checkbox">
+					                    		{% set checked = ''%}
+					                    		{% if item.status == 1 %}
+					                    			{% set checked = 'checked'%}
+					                    		{% endif %}
+					                    		<input type="checkbox" name="status"
+					                        class="custom-control-input new-task task-status" {{checked}}>
+					                        <span class="custom-control-indicator"></span>
+					                    </label>
+					                </td>
+					                <td>{{item.description}}</td>
+					                <td>
+					                	<a href="#" class="btn btn-outline-danger delete" id="delete">
+					                		<i class="material-icons">delete</i>
+					                	</a>
+					                </td>
+			               		</tr>
+	                		{%endfor%}
+	                	</tbody>
+	                	<tfoot>
+	                		<td>
+	                			
+	                		</td>
+	                		<td>
+	                			<div class="input-group">
+	              		      <input type="text" class="form-control new-task" id="description" name ="description" placeholder="Add a Task..." aria-label="
+	              		      Add a Task...">
+	              		      <input type="hidden" class="new-task" name="user" value="{{user_email}}">
+	              		      <span class="input-group-btn">
+	              		        <a class="btn btn-success" id="add-task">Add</a>
+	              		      </span>
+	                			</div>
+	                		</td>
+	                	</tfoot>
+	                </table>
+	            </div>
+	        </div>
+{% endblock %}
+
+
+{% block js %}
+		<script type="text/javascript">
+
+			function addRow(description, id){
+				var row = '<tr data-id="'+id+'">'+
+					        	'<td>'+
+					            '<label class="custom-control custom-checkbox">'+
+
+						            '<input type="checkbox" name="status" class="custom-control-input new-task task-status">'+
+						            '<input type="hidden" name="status" class="new-task">'+
+						            '<span class="custom-control-indicator"></span>'+
+					            '</label>'+
+					          '</td>'+
+					          '<td>'+description+'</td>'+
+					          '<td>'+
+					            '<a href="#" class="btn btn-outline-danger delete" id="delete">'+
+					              '<i class="material-icons">delete</i>'+
+					            '</a>'+
+					          '</td>'+
+			            '</tr>';
+				$('.table tbody').append(row);
+				$('#description').val('');
+
+			}
+
+			/********** ADD TASK******************/
+			$('#add-task').click(function(event) {
+
+				$.ajax({
+	            url:  '/task/add',
+	            data: $('.new-task').serialize(),
+	            type: 'POST',
+	            success: function(response) {
+	            	response = JSON.parse(response);
+	            	//console.log(response);
+	              if (response.status == 'ERR'){
+	              	alert(response.error);
+	              }else if(response.status == 'OK'){
+	              	alert(response.msj);
+	              	addRow($('#description').val(), response.id);
+
+	              }
+	            },
+	            error: function(error) {
+	                console.log(error);
+	            }
+	      });
+			});
+
+			/**************** REMOVE TASK ****************/
+			$(document).on('click', '.delete', function() {
+				var taskId = $(this).closest('tr').attr('data-id');
+				var taskRow = $(this).closest('tr');
+				//console.log(taskRow);
+				$.ajax({
+	            url:  '/task/delete',
+	            data: '&task_id='+taskId,
+	            type: 'POST',
+	            success: function(response) {
+	            	response = JSON.parse(response);
+	            	//console.log(response);
+	              if (response.status == 'ERR'){
+	              	alert(response.error);
+	              }else if(response.status == 'OK'){
+	              	alert(response.msj);
+	              	taskRow.remove();
+
+	              }
+	            },
+	            error: function(error) {
+	                console.log(error);
+	            }
+	      });
+			});
+
+			/**************** UPDATE TASK STATUS *************/
+			$(document).on('click', '.task-status', function() {
+				var taskId = $(this).closest('tr').attr('data-id');
+				var taskRow = $(this).closest('tr');
+				var status = '';
+
+				if($(this).prop('checked')){
+					status = 1;
+				}else{
+					status = 0;
+				}
+
+				$.ajax({
+	            url:  '/task/update_status',
+	            data: '&task_id='+taskId+'&status='+status,
+	            type: 'POST',
+	            success: function(response) {
+	            	response = JSON.parse(response);
+	            	//console.log(response);
+	              if (response.status == 'ERR'){
+	              	alert(response.error);
+	              }else if(response.status == 'OK'){
+	              	alert(response.msj);
+	              }
+	            },
+	            error: function(error) {
+	                console.log(error);
+	            }
+	      });
+
+
+
+			});
+			
+
+		</script>
+{% endblock %}
